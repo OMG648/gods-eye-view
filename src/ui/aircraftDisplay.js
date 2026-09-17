@@ -1,6 +1,9 @@
+import { mobilePerformanceProfile } from '../mobileProfile.js';
+
 /** Own the shared aircraft display preference and its controls. */
 export class AircraftDisplay {
-  constructor({ elements, readDataManager, layout }) {
+  constructor({ elements, readDataManager, layout, profile = null }) {
+    this._profile = profile || mobilePerformanceProfile();
     Object.assign(this, elements, {
       readDataManager,
       _layoutRightPanels: layout,
@@ -47,6 +50,32 @@ export class AircraftDisplay {
     if (!this._models3dBtn) return;
     this._syncModels3dButtonState();
     this._syncModels3dModeRow();
+  }
+
+  /**
+   * Turn the glTF fleet off for a phone's FIRST load.
+   *
+   * The owner directive that makes models default-ON in proximity mode reasons
+   * about a desktop GPU. On a phone the same scene is the difference between a
+   * globe and a slideshow, so a narrow viewport starts with billboards only —
+   * no contact disappears, only its model, and the DISPLAY toggle turns them
+   * straight back on.
+   *
+   * Applied after layer state settles, never before: the coordinator pushes
+   * durable state when restoration resolves and would overwrite an earlier
+   * write. A share link that asks for models therefore still wins, and the
+   * shared default in layerState.js is deliberately left alone because its
+   * `absentValue` carries the v2 share-link schema's meaning.
+   * @returns {boolean} whether the fleet was switched off by this call.
+   */
+  applyMobileModels3dDefault() {
+    if (this._profile.aircraftModels3d !== false) return false;
+    if (!this._models3dEnabled) return false;
+    this._models3dEnabled = false;
+    this._setModels3dParams({ models3d: false }, { origin: 'programmatic' });
+    this._syncModels3dButtonState();
+    this._syncModels3dModeRow();
+    return true;
   }
 
   _setModels3dEnabled(enabled) {

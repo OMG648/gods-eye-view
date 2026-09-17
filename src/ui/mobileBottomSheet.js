@@ -1,4 +1,4 @@
-import { MOBILE_MEDIA_QUERY } from './mobileLayout.js';
+import { MOBILE_MEDIA_QUERY } from '../mobileProfile.js';
 import { collapsePanelOnEscape } from './panelDisclosure.js';
 
 /**

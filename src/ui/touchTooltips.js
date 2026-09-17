@@ -1,4 +1,4 @@
-import { prefersTouchInteraction } from './mobileLayout.js';
+import { prefersTouchInteraction } from '../mobileProfile.js';
 
 /**
  * Long-press cards standing in for `title` tooltips on touch screens.

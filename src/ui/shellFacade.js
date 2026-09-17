@@ -1451,6 +1451,10 @@ export class ShellFacade {
     return this._aircraftDisplay._setModels3dEnabled(...args);
   }
 
+  applyMobileModels3dDefault(...args) {
+    return this._aircraftDisplay.applyMobileModels3dDefault(...args);
+  }
+
   _setModels3dMode(...args) {
     return this._aircraftDisplay._setModels3dMode(...args);
   }

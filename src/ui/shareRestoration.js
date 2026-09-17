@@ -13,6 +13,7 @@ export class ShareRestoration {
     showStatus,
     feedback,
     updateFeedback,
+    onLayerStateSettled = null,
   }) {
     Object.assign(this, {
       viewer,
@@ -22,6 +23,7 @@ export class ShareRestoration {
       showStatus,
       feedback,
       updateFeedback,
+      onLayerStateSettled,
     });
     this._lifetime = new UiLifetime();
     this._disposed = false;
@@ -159,6 +161,12 @@ export class ShareRestoration {
       }
       void this._layerStateRestorePromise.then(() => {
         this.syncModels3d(this._layerStateCoordinator?.getDurableState());
+        // The last write wins, and it is this one. A startup default that ran
+        // before restoration would be silently undone by the durable push
+        // above, so callers that need one are invoked here instead.
+        this.onLayerStateSettled?.({
+          fromShareLink: this._hasShareState === true,
+        });
       });
     }
   }

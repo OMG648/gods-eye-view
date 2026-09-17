@@ -20,7 +20,7 @@
   },
   "viewer": {
     "exports": ["./application/viewer"],
-    "modules": ["src/app/viewer.js"],
+    "modules": ["src/app/viewer.js", "src/mobileProfile.js"],
     "external": ["cesium"]
   },
   "vite-build": {
@@ -494,6 +494,7 @@
       "src/loadingFeedback.js",
       "src/locationStatus.js",
       "src/mapStackChips.js",
+      "src/mobileProfile.js",
       "src/navigationPolicy.js",
       "src/panelStackLayout.js",
       "src/rightRailPolicy.js",
@@ -552,7 +553,6 @@
       "src/ui/mapSource.js",
       "src/ui/mapSourceControls.js",
       "src/ui/mobileBottomSheet.js",
-      "src/ui/mobileLayout.js",
       "src/ui/navigationController.js",
       "src/ui/panelChrome.js",
       "src/ui/panelDisclosure.js",
@@ -1645,6 +1645,7 @@
       "src/maps/imagery.js",
       "src/maps/registry.js",
       "src/maps/terrain.js",
+      "src/mobileProfile.js",
       "src/navigationPolicy.js",
       "src/nominatimGeocode.js",
       "src/orbit.js",
@@ -1759,7 +1760,6 @@
       "src/ui/mapSource.js",
       "src/ui/mapSourceControls.js",
       "src/ui/mobileBottomSheet.js",
-      "src/ui/mobileLayout.js",
       "src/ui/navigationController.js",
       "src/ui/panelChrome.js",
       "src/ui/panelDisclosure.js",

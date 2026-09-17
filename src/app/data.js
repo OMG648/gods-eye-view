@@ -1,5 +1,6 @@
 import { LayerLifecycle } from '../data/lifecycle.js';
 import { LayerPresentation } from './layerPresentation.js';
+import { mobilePerformanceProfile } from '../mobileProfile.js';
 /** Register the application layer catalog before allowing state restoration. */
 export function createApplicationData({
   scene: { viewer, mapStackController },
@@ -12,6 +13,9 @@ export function createApplicationData({
   // Initialize data layer manager
   const dataManager = new LayerLifecycle(viewer, {
     allowQaRegistration,
+    // Phones poll every feed half as often: a flat battery and a saturated
+    // mobile link cost more than the extra seconds of feed latency.
+    refreshIntervalScale: mobilePerformanceProfile().refreshIntervalMultiplier,
   });
   defer(async () => {
     await dataManager.destroyAll();

@@ -1,6 +1,10 @@
 import { createApplicationOperations } from './operations.js';
 import * as Cesium from 'cesium';
 import { createApplicationViewer } from '../app/viewer.js';
+import {
+  initialMapStackFor,
+  mobilePerformanceProfile,
+} from '../mobileProfile.js';
 import { registerDataCredits } from '../data/dataCredits.js';
 import { configureCreditKeyboardAccess } from '../creditKeyboard.js';
 import { MapStackController } from '../mapStackController.js';
@@ -38,6 +42,7 @@ export async function createApplicationScene({
       else window.__GOOGLE_MAPS_API_KEY__ = previousKey;
     });
   }
+  const performanceProfile = mobilePerformanceProfile();
   loaderStatus.textContent = 'Configuring viewer...';
   // Provider attribution stays visible, including clean-view and recording.
   const creditContainer = document.createElement('div');
@@ -96,7 +101,15 @@ export async function createApplicationScene({
     ...mapOptions,
     googleTileset: tileset,
     cesiumToken,
-    initialStack: tileset ? 'photoreal' : 'esri-imagery',
+    // Photorealistic 3D tiles are the heaviest thing this app can draw; on a
+    // phone they are the difference between a usable globe and a slideshow, so
+    // a narrow viewport opens on the 2D imagery instead. The map-source chips
+    // still offer photoreal, and a share link that names it still wins — this
+    // only decides what an unqualified first load starts with.
+    initialStack: initialMapStackFor({
+      hasPhotorealTileset: Boolean(tileset),
+      preferLightweightBasemap: performanceProfile.preferLightweightBasemap,
+    }),
     // Task 5 (height-datum fix): rebroadcast stack changes as a window
     // CustomEvent so data layers (CCTV per-regime ground resolution) can
     // react without coupling MapStackController to layer modules. Fires on

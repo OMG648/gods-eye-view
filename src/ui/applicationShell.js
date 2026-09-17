@@ -10,7 +10,10 @@ import { createStateChannel } from '../app/stateChannel.js';
 import { setSplitFlapText } from '../splitFlap.js';
 import { UiLifetime } from './uiLifetime.js';
 import { createMobileBottomSheet } from './mobileBottomSheet.js';
-import { prefersMobileLayout } from './mobileLayout.js';
+import {
+  prefersMobileLayout,
+  mobilePerformanceProfile,
+} from '../mobileProfile.js';
 import { createTouchTooltips } from './touchTooltips.js';
 import { RecordingControls } from './recordingControls.js';
 import { readShellElements } from './shellElements.js';
@@ -86,6 +89,7 @@ export class StyleManager extends ShellFacade {
       syncShareState: () => this._syncShareState(),
     });
     Object.assign(this, readShellElements());
+    this._performanceProfile = mobilePerformanceProfile();
     this._panelChrome = new PanelChrome({
       elements: {
         _contextRadioDetailsBtn: this._contextRadioDetailsBtn,
@@ -142,6 +146,13 @@ export class StyleManager extends ShellFacade {
       navigation: this._navigation,
       syncShareState: () => this._syncShareState(),
       syncModels3d: (state) => this._syncModels3dFromLayerState(state),
+      // Phone-class startup defaults land here, after the coordinator's own
+      // durable push — anything applied earlier in the `_init*` sequence is
+      // silently overwritten by it. A share link always wins.
+      onLayerStateSettled: ({ fromShareLink }) => {
+        if (this._disposed || fromShareLink) return;
+        this.applyMobileModels3dDefault();
+      },
       showStatus: (message, options) =>
         this._showGlobalStatusNotice(message, options),
       feedback: this._feedback,
@@ -547,6 +558,7 @@ export class StyleManager extends ShellFacade {
     this._initHUDToggle();
     this._initModels3dToggle();
     this._applyGlobalPostDefaults();
+    this._applyMobileDetectionDensity();
     this._initOrbit();
     this._initRecordingOverlay();
     this._startAnimationLoop();
@@ -1412,6 +1424,27 @@ export class StyleManager extends ShellFacade {
    * contact is independent of this toggle (see trackedModelRegime.js).
    * @returns {void}
    */
+
+  /**
+   * Step detection density down one stop on a phone.
+   *
+   * GLOBAL_POST_DEFAULTS applies the Dense military preset (75%) on first
+   * load, so this runs immediately after it — writing the slider earlier is
+   * pointless, as that baseline overwrites it. Every detection label is placed,
+   * laid out and occlusion-tested each frame, which is the per-frame cost a
+   * phone can least afford. A share link or a hand-edited value still wins:
+   * both land after this.
+   * @returns {void}
+   */
+  _applyMobileDetectionDensity() {
+    const pct = this._performanceProfile.detectionDensityPct;
+    if (!this._detectionDensitySlider) return;
+    if (Number(this._detectionDensitySlider.value) === pct) return;
+    this._detectionDensitySlider.value = String(pct);
+    if (this._detectionDensityValue)
+      this._detectionDensityValue.textContent = `${pct}%`;
+    this._applyDetectionDensityFromUi();
+  }
 
   _initHUDToggle() {
     // The tactical HUD lays four corner blocks and two full-width bars around a

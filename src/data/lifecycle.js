@@ -70,8 +70,18 @@ function refreshFailureFromStats(stats, label) {
  * for real-time data overlays on the CesiumJS globe.
  */
 export class LayerLifecycle {
-  constructor(viewer, { allowQaRegistration = false } = {}) {
+  constructor(
+    viewer,
+    { allowQaRegistration = false, refreshIntervalScale = 1 } = {},
+  ) {
     this.viewer = viewer;
+    // Multiplies every polled layer's refresh cadence. Phones pass >1 to trade
+    // feed latency for battery and radio time; a non-finite or non-positive
+    // value would silently disarm every update loop, so it is clamped here.
+    this._refreshIntervalScale =
+      Number.isFinite(refreshIntervalScale) && refreshIntervalScale > 0
+        ? refreshIntervalScale
+        : 1;
     this._activityListeners = new Set();
     this.layers = new Map(); // id → { module, enabled, initialized, intervalId, lifecycleState, lifecycleUncertain }
     this._listeners = new Set();
@@ -515,12 +525,17 @@ export class LayerLifecycle {
   _armUpdateLoop(layerId, entry) {
     const configuredRefreshInterval = Number(entry.module.refreshInterval);
     const updateInterval = Number(entry.module.updateInterval);
-    const refreshInterval =
+    const baseRefreshInterval =
       configuredRefreshInterval > 0
         ? configuredRefreshInterval
         : updateInterval > 0
           ? updateInterval
           : 0;
+    // Every polled feed in the app is armed here, so this is the one place a
+    // phone's refresh budget can be stretched without touching per-layer
+    // cadences. A stale reading is never served — the interval only decides
+    // how often a fresh one is fetched.
+    const refreshInterval = baseRefreshInterval * this._refreshIntervalScale;
     if (refreshInterval > 0) {
       entry.intervalId = setInterval(() => {
         void this._runPeriodicUpdate(layerId, entry);
