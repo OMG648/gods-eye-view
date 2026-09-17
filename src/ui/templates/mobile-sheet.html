@@ -1,0 +1,43 @@
+  <!-- Narrow-viewport bottom sheet. The panes are empty on purpose: the sheet
+       ADOPTS the live panel elements at <=720px and hands them back to the
+       rails above it, so every existing binding keeps its element identity. -->
+  <div id="mobile-sheet" class="panel-collapsible collapsed" hidden aria-label="Console panels">
+    <div id="mobile-sheet-surface" class="mobile-sheet-surface">
+      <div class="mobile-sheet-grip" aria-hidden="true"></div>
+      <div class="mobile-sheet-header">
+        <span id="mobile-sheet-title" class="mobile-sheet-title">LAYERS</span>
+        <button id="mobile-sheet-close" class="mobile-sheet-close" type="button"
+          data-collapse-target="mobile-sheet" aria-label="Close panel">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </div>
+      <div id="mobile-sheet-panes" class="mobile-sheet-panes">
+        <div class="mobile-sheet-pane" data-sheet-pane="layers" role="tabpanel" aria-labelledby="mobile-tab-layers"></div>
+        <div class="mobile-sheet-pane" data-sheet-pane="contacts" role="tabpanel" aria-labelledby="mobile-tab-contacts" hidden></div>
+        <div class="mobile-sheet-pane" data-sheet-pane="styles" role="tabpanel" aria-labelledby="mobile-tab-styles" hidden></div>
+        <div class="mobile-sheet-pane" data-sheet-pane="settings" role="tabpanel" aria-labelledby="mobile-tab-settings" hidden></div>
+      </div>
+    </div>
+    <div id="mobile-sheet-tabs" class="mobile-sheet-tabs" role="tablist" aria-label="Console sections">
+      <button id="mobile-tab-layers" class="mobile-sheet-tab" type="button" role="tab"
+        data-sheet-tab="layers" aria-selected="false" aria-controls="mobile-sheet-panes">
+        <span class="material-symbols-outlined" aria-hidden="true">layers</span>
+        <span class="mobile-sheet-tab-label">Layers</span>
+      </button>
+      <button id="mobile-tab-contacts" class="mobile-sheet-tab" type="button" role="tab"
+        data-sheet-tab="contacts" aria-selected="false" aria-controls="mobile-sheet-panes">
+        <span class="material-symbols-outlined" aria-hidden="true">radar</span>
+        <span class="mobile-sheet-tab-label">Contacts</span>
+      </button>
+      <button id="mobile-tab-styles" class="mobile-sheet-tab" type="button" role="tab"
+        data-sheet-tab="styles" aria-selected="false" aria-controls="mobile-sheet-panes">
+        <span class="material-symbols-outlined" aria-hidden="true">palette</span>
+        <span class="mobile-sheet-tab-label">Styles</span>
+      </button>
+      <button id="mobile-tab-settings" class="mobile-sheet-tab" type="button" role="tab"
+        data-sheet-tab="settings" aria-selected="false" aria-controls="mobile-sheet-panes">
+        <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+        <span class="mobile-sheet-tab-label">Settings</span>
+      </button>
+    </div>
+  </div>

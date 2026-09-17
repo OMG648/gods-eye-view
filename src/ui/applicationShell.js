@@ -9,6 +9,8 @@ import { DisplayBindings } from './displayBindings.js';
 import { createStateChannel } from '../app/stateChannel.js';
 import { setSplitFlapText } from '../splitFlap.js';
 import { UiLifetime } from './uiLifetime.js';
+import { createMobileBottomSheet } from './mobileBottomSheet.js';
+import { prefersMobileLayout } from './mobileLayout.js';
 import { RecordingControls } from './recordingControls.js';
 import { readShellElements } from './shellElements.js';
 import { CockpitCoordinator } from './cockpitCoordinator.js';
@@ -556,6 +558,20 @@ export class StyleManager extends ShellFacade {
     // Keep the parameter panel from overlapping toggle controls.
     this._layoutRightPanels();
     this._syncCctvPanelViewport();
+
+    // Narrow viewports: adopt the rail panels into a tabbed bottom sheet. The
+    // rails already stand down at this width, so the sheet takes over rather
+    // than competing with them, and above the breakpoint it hands every panel
+    // back. This runs LAST on purpose: the `_init*` sequence above reparents
+    // panels relative to their siblings (`_initPanelChrome` does
+    // `stack.insertBefore(cctvPanel, globalContextPanel)`), so adopting any of
+    // them earlier makes that reference node a non-child and throws.
+    this._mobileSheet = createMobileBottomSheet({
+      onChange: () => {
+        this._scheduleLeftPanelLayout({ reconsiderAutoCollapse: true });
+        this._scheduleRightPanelLayout({ reconsiderAutoCollapse: true });
+      },
+    });
     this._windowResizeHandler = () => {
       this._scheduleRightPanelLayout({ reconsiderAutoCollapse: true });
       this._syncCctvPanelViewport();
@@ -1394,10 +1410,16 @@ export class StyleManager extends ShellFacade {
    */
 
   _initHUDToggle() {
+    // The tactical HUD lays four corner blocks and two full-width bars around a
+    // desktop viewport; at phone widths they overlap into an unreadable stack.
+    // `minimal` is the variant built for that, so narrow viewports start there.
+    // It is a DEFAULT, not a lock — the layout select still offers every
+    // variant, and the choice is not persisted differently.
+    const variant = prefersMobileLayout() ? 'minimal' : 'tactical';
     if (this._hudLayoutSelect) {
-      this._hudLayoutSelect.value = 'tactical';
+      this._hudLayoutSelect.value = variant;
     }
-    this._setHudVariant('tactical');
+    this._setHudVariant(variant);
     this.hud.setMode('on');
     this._updateHudButtonState();
 
@@ -1464,6 +1486,7 @@ export class StyleManager extends ShellFacade {
     this._lifetime.destroy();
     this._recording.destroy();
     this._panelChrome.destroy();
+    this._mobileSheet?.destroy();
     this._feedback.destroy();
 
     this._displayBindings.destroy();

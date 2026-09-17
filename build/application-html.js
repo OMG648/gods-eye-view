@@ -6,6 +6,7 @@ export const APPLICATION_TEMPLATES = Object.freeze([
   'display-controls',
   'command-dock',
   'layer-panels',
+  'mobile-sheet',
   'context',
   'welcome',
   'provider-settings',

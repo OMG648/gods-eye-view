@@ -189,8 +189,13 @@
        floor cut into it at EVERY viewport height — the DISPLAY toggles were
        drawn straight over the notice. Track the credit's own anchor instead
        and the 12px of clear air holds regardless of height; the rail already
-       scrolls (overflow-y below), so it loses reach, not content. */
-    bottom: calc(2vh + 7.5rem);
+       scrolls (overflow-y below), so it loses reach, not content.
+
+       The trailing 3.5rem is the mobile sheet's tab bar, which lifts the whole
+       bottom stack — dock and credit alike — by that much (mobile-sheet.css).
+       It stays folded into THIS declaration because creditAttribution.test.mjs
+       requires the rail to have exactly one bottom anchor to reason about. */
+    bottom: calc(2vh + 7.5rem + 3.5rem);
     left: 16px;
     width: auto;
     max-height: none;

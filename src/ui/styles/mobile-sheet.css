@@ -1,0 +1,281 @@
+/* ── Mobile bottom sheet ──────────────────────────
+   Narrow viewports only. Above 720px the sheet is display:none and the panels
+   live in the rails, so every rule here is inert on desktop. */
+
+#mobile-sheet {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  #mobile-sheet {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  #mobile-sheet > * {
+    pointer-events: auto;
+  }
+
+  /* ── Sliding surface ── */
+  .mobile-sheet-surface {
+    display: flex;
+    flex-direction: column;
+    /* Stop short of the bottom stack. The command dock floats at
+       calc(8px + 3.5rem) and the required credit sits above it, both at a
+       HIGHER z-index than the sheet because the credit must never be covered.
+       Ending the surface above the credit's top edge keeps the panel content
+       from sliding under either of them. */
+    margin-bottom: calc(2vh + 8.5rem + 36px);
+    max-height: min(52vh, 460px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 12px 12px;
+    background: rgba(6, 10, 14, 0.94);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid rgba(0, 255, 204, 0.28);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.55);
+    transform: translateY(0);
+    transition:
+      transform 220ms ease,
+      opacity 180ms ease;
+  }
+
+  #mobile-sheet.collapsed .mobile-sheet-surface {
+    transform: translateY(100%);
+    opacity: 0;
+    max-height: 0;
+    padding-block: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .mobile-sheet-grip {
+    flex: none;
+    width: 36px;
+    height: 4px;
+    margin: 8px auto 4px;
+    border-radius: 2px;
+    background: rgba(0, 255, 204, 0.35);
+  }
+
+  .mobile-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 2px 0 8px;
+    background: linear-gradient(
+      rgba(6, 10, 14, 0.98) 70%,
+      rgba(6, 10, 14, 0)
+    );
+  }
+
+  .mobile-sheet-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #00ffcc;
+  }
+
+  .mobile-sheet-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 44px minimum touch target. */
+    min-width: 44px;
+    min-height: 44px;
+    margin-right: -10px;
+    border: 0;
+    background: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+  }
+
+  .mobile-sheet-close .material-symbols-outlined {
+    font-size: 22px;
+  }
+
+  .mobile-sheet-pane[hidden] {
+    display: none;
+  }
+
+  .mobile-sheet-pane {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* ── Tab bar: always visible, it is the console's mobile home row ── */
+  .mobile-sheet-tabs {
+    flex: none;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    /* Exactly 3.5rem — the shift applied to the dock and the credit above. */
+    height: 3.5rem;
+    padding: 4px 6px;
+    box-sizing: border-box;
+    background: rgba(4, 7, 10, 0.96);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid rgba(0, 255, 204, 0.18);
+  }
+
+  .mobile-sheet-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    /* 44px minimum touch target. */
+    min-height: 44px;
+    padding: 2px;
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    color: rgba(255, 255, 255, 0.55);
+    font-family: inherit;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      color 140ms ease,
+      background 140ms ease;
+  }
+
+  .mobile-sheet-tab .material-symbols-outlined {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .mobile-sheet-tab[aria-selected='true'] {
+    color: #00ffcc;
+    background: rgba(0, 255, 204, 0.1);
+  }
+
+  /* ── Adopted panels drop their floating-window chrome ── */
+  .in-mobile-sheet {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    transform: none !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+  }
+
+  /* The sheet owns disclosure now, so per-panel collapse chrome would offer a
+     second, conflicting way to hide the same content. */
+  .in-mobile-sheet .panel-collapse-btn,
+  .in-mobile-sheet .dock-pin-btn,
+  .in-mobile-sheet .panel-glow,
+  .in-mobile-sheet .panel-mini-status,
+  .in-mobile-sheet .location-mini-status {
+    display: none !important;
+  }
+
+  /* No `.dock-popover-content` override belongs here. Every rule that hides or
+     positions a tray body is scoped under `#command-dock`, so a panel the sheet
+     has adopted out of the dock already renders its body static and visible.
+     Restyling it here would also put `position`/`transform` on an element the
+     credit-attribution model tracks (src/creditAttribution.test.mjs), which
+     refuses selectors it cannot resolve. The tray's own toggle stays inert so
+     it cannot collapse a panel the sheet is responsible for. */
+  .in-mobile-sheet .dock-tray-toggle {
+    pointer-events: none;
+  }
+
+  /* Touch-sized controls inside adopted panels. */
+  .in-mobile-sheet .scene-btn,
+  .in-mobile-sheet .style-btn,
+  .in-mobile-sheet .pp-toggle,
+  .in-mobile-sheet select,
+  .in-mobile-sheet .context-mode-button {
+    min-height: 44px;
+  }
+
+  .in-mobile-sheet .data-toggle-list > * {
+    min-height: 44px;
+  }
+
+  /* Keyboard-only affordances: no keyboard on a phone. */
+  .in-mobile-sheet .btn-key,
+  .in-mobile-sheet .poi-key,
+  .in-mobile-sheet .location-pill-key,
+  body.mobile-sheet-active .shortcut-hint,
+  body.mobile-sheet-active #keyboard-hints {
+    display: none !important;
+  }
+
+  /* The rails are empty while the sheet holds their panels. */
+  body.mobile-sheet-active #left-panel-stack:empty,
+  body.mobile-sheet-active #right-context-rail:empty {
+    display: none;
+  }
+
+  /* The tab bar claims the bottom 3.5rem, so the bottom stack rises by exactly
+     that much. The command dock and the required Google/Cesium credit shift
+     TOGETHER by the same amount, which leaves the clearance BETWEEN them — the
+     one thing creditAttribution.test.mjs actually proves — unchanged.
+
+     Both offsets are flat lengths, and both selectors are already in that
+     model's recognized set, on purpose. The model fails closed on any cascade
+     construct it cannot evaluate, and it cannot evaluate `env()` — so the bar
+     is a fixed 3.5rem with no safe-area inset added to its height. On a phone
+     with a home indicator the indicator strip overlays the bottom of the bar
+     rather than displacing it; the tab targets are 48px and sit above it. */
+  #command-dock {
+    bottom: calc(8px + 3.5rem);
+  }
+
+  body:not(.ui-clean-view):not(.recording-mode) #cesium-credits,
+  body:not(.ui-clean-view):not(.recording-mode):has(
+      #intel-hud[data-variant='minimal'].active
+    )
+    #cesium-credits {
+    bottom: calc(2vh + 5rem + 3.5rem);
+  }
+
+  /* The HUD's bottom readouts were anchored to clear the credit at its old
+     position. The credit moved up 3.5rem, so they clear its NEW top edge
+     instead: credit bottom (2vh + 8.5rem) + its 1.75rem height + air. */
+  #intel-hud[data-variant='minimal'] .hud-bottom-left,
+  #intel-hud[data-variant='minimal'] .hud-bottom-right,
+  #intel-hud[data-variant='tactical'] .hud-bottom-left,
+  #intel-hud[data-variant='tactical'] .hud-bottom-right,
+  #intel-hud[data-variant='operator'] .hud-bottom-left,
+  #intel-hud[data-variant='operator'] .hud-bottom-right {
+    bottom: calc(2vh + 11rem);
+  }
+
+  /* Clean view and recording mode strip the console chrome; the sheet goes too.
+     The dock is already hidden in both, so its offset above needs no variant —
+     one would be a construct the attribution model cannot resolve. */
+  body.ui-clean-view #mobile-sheet,
+  body.recording-mode #mobile-sheet {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) and (prefers-reduced-motion: reduce) {
+  .mobile-sheet-surface {
+    transition: none;
+  }
+}

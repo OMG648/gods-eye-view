@@ -47,8 +47,14 @@ export function createVoiceControl({ reset = false } = {}) {
       const locationBar = document.getElementById('location-bar');
       const controlPanel = document.getElementById('control-panel');
       commandDock.appendChild(root);
-      if (locationBar) commandDock.insertBefore(locationBar, root);
-      if (controlPanel) commandDock.appendChild(controlPanel);
+      // Order the dock's OWN children around the voice pill. A panel that
+      // currently lives elsewhere — the narrow-viewport bottom sheet adopts
+      // #control-panel — is not the dock's to reclaim, and appending it here
+      // would silently steal it back out of the sheet.
+      if (locationBar?.parentElement === commandDock)
+        commandDock.insertBefore(locationBar, root);
+      if (controlPanel?.parentElement === commandDock)
+        commandDock.appendChild(controlPanel);
     } else {
       document.body.appendChild(root);
     }

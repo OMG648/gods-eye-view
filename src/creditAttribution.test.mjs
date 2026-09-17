@@ -558,10 +558,17 @@ test('the full-width context rail clears the required credit at every modelled v
 
 test('the dock anchor changes at 720px — the 2vh cancellation is band-limited', () => {
   assert.equal(resolve(['#command-dock'], 'bottom', 800, 'dock').decl.value, '2vh');
-  assert.equal(resolve(['#command-dock'], 'bottom', 720, 'dock').decl.value, '8px');
+  // At <=720px the mobile bottom sheet's tab bar takes the lowest 3.5rem, so
+  // the dock and the credit are BOTH lifted by that much (mobile-sheet.css).
+  // The lift is equal on purpose — it moves the pair without changing the
+  // clearance between them, which is what the scenarios above measure.
+  assert.equal(
+    resolve(['#command-dock'], 'bottom', 720, 'dock').decl.value,
+    'calc(8px + 3.5rem)',
+  );
   assert.equal(
     resolve(CREDIT_SELECTORS, 'bottom', 720, 'credit').decl.value,
-    'calc(2vh + 5rem)',
+    'calc(2vh + 5rem + 3.5rem)',
     'the credit keeps its 2vh base below 720px — that asymmetry is the whole hazard',
   );
 });
