@@ -1,0 +1,48 @@
+/* ── Touch input ──────────────────────────────────
+   Pointer-keyed, not viewport-keyed: a narrow desktop window keeps its native
+   hover tooltips and its ordinary click behaviour. */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Kill double-tap-to-zoom and the 300ms click delay on the console chrome.
+     The Cesium canvas is NOT included: Cesium sets `touch-action: none` on it
+     itself so pinch, two-finger tilt and rotate reach the camera controller
+     rather than the browser, and overriding that here would break them. */
+  body {
+    touch-action: manipulation;
+  }
+
+  /* A tap that lands on a control should not select its label. */
+  button,
+  .scene-btn,
+  .style-btn,
+  .pp-toggle,
+  .data-toggle-btn {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* The long-press card standing in for a `title` tooltip. */
+#touch-tip {
+  position: fixed;
+  z-index: 200;
+  max-width: min(18rem, calc(100vw - 2rem));
+  padding: 8px 10px;
+  color: #e8eaed;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  text-align: left;
+  background: rgba(6, 10, 14, 0.96);
+  border: 1px solid rgba(0, 255, 204, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+#touch-tip[hidden] {
+  display: none;
+}

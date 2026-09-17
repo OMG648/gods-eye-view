@@ -11,6 +11,7 @@ import { setSplitFlapText } from '../splitFlap.js';
 import { UiLifetime } from './uiLifetime.js';
 import { createMobileBottomSheet } from './mobileBottomSheet.js';
 import { prefersMobileLayout } from './mobileLayout.js';
+import { createTouchTooltips } from './touchTooltips.js';
 import { RecordingControls } from './recordingControls.js';
 import { readShellElements } from './shellElements.js';
 import { CockpitCoordinator } from './cockpitCoordinator.js';
@@ -566,6 +567,9 @@ export class StyleManager extends ShellFacade {
     // panels relative to their siblings (`_initPanelChrome` does
     // `stack.insertBefore(cctvPanel, globalContextPanel)`), so adopting any of
     // them earlier makes that reference node a non-child and throws.
+    // Touch screens never fire the hover that reveals a `title`, so the same
+    // text is offered on a long press instead.
+    this._touchTooltips = createTouchTooltips();
     this._mobileSheet = createMobileBottomSheet({
       onChange: () => {
         this._scheduleLeftPanelLayout({ reconsiderAutoCollapse: true });
@@ -1487,6 +1491,7 @@ export class StyleManager extends ShellFacade {
     this._recording.destroy();
     this._panelChrome.destroy();
     this._mobileSheet?.destroy();
+    this._touchTooltips?.destroy();
     this._feedback.destroy();
 
     this._displayBindings.destroy();
