@@ -467,11 +467,100 @@ Everything above is the deliberately cheap baseline — enough to get a real tas
 By default nobody else can reach your server — it binds to localhost. To share on your LAN, opt in explicitly (`npm run dev -- --host 0.0.0.0 --port 4173`, or `HOST=0.0.0.0 ./scripts/dev-fresh.sh` on macOS/Linux) — but know that ⚠️ **a LAN-visible server brokers your configured API keys to anyone who can reach it.** Set the per-IP throttles (`GEV_RATELIMIT_OPENAI_PER_MIN`, `GEV_RATELIMIT_GOOGLE_PER_MIN` — see `.env.example`) and, before anything else, **configure provider quotas, usage limits, and billing alerts**: app-level throttles are not billing caps, and a budget alert alone does not stop spending. Full threat model in [SECURITY.md](SECURITY.md).
 
 Provider Settings is disabled when the server is shared, so remote users cannot
-access the key-entry panel.
+access the key-entry panel. Sharing it with a phone has one extra wrinkle — a
+plain-HTTP LAN address is not a secure origin, so the PWA and the microphone
+stay unavailable there; see [On Your Phone](#-on-your-phone).
 
 **Pinokio LAN and Cloudflare sharing remain disabled for this launcher.** Use
 a separately reviewed authentication proxy if remote access is required.
 [SECURITY.md](SECURITY.md) explains the restrictions and threat model.
+
+---
+
+## 📱 On Your Phone
+
+Below 720px the console re-composes itself: the side panels collapse into a
+bottom sheet with four tabs (Layers · Contacts · Styles · Settings), the globe
+stays full-screen behind it, and the HUD drops to its `minimal` variant.
+Pinch to zoom, drag with one finger to pan, drag with two to tilt and rotate,
+tap a contact to track it. Long-press any control to read its tooltip — a
+phone never fires the hover that normally reveals one.
+
+A phone also gets lighter defaults: the 2D Esri basemap instead of
+photorealistic 3D tiles, 1x MSAA instead of 4x, detection labels one density
+stop down, live feeds polled half as often, and 3D aircraft models off (the
+billboards still draw). Every one of those is a *starting point*, not a lock —
+the DISPLAY toggles and map-source chips change them, and a shared link always
+wins over them.
+
+### Installing it
+
+From an **HTTPS** origin — or from `http://localhost` on the same machine —
+the app is an installable PWA: "Add to Home Screen" on iOS, "Install app" on
+Android. It then launches standalone, without browser chrome, and the app
+shell is cached so it opens instantly.
+
+The service worker caches the shell **only**. Live feeds — aircraft, vessels,
+satellites, fires, quakes, CCTV — are never cached: a stored position for a
+moving aircraft is indistinguishable from a current one, which is worse than
+no position at all. Offline you get the console, not stale contacts.
+
+### Reaching it from your phone
+
+The server binds to `localhost` by default, so nothing else on your network
+can see it. To let a phone reach it, opt in explicitly:
+
+```bash
+# from the repo root, on the machine running the server
+npm run dev -- --host 0.0.0.0 --port 4173
+
+# then find the address to type into the phone's browser
+ipconfig getifaddr en0        # macOS
+hostname -I | awk '{print $1}' # Linux
+```
+
+Both devices must be on the same network. Open `http://<that-address>:4173`
+on the phone.
+
+> [!WARNING]
+> ⚠️ **A LAN-visible server brokers your configured API keys to anyone who can
+> reach it.** Use it only on networks you trust. Before you do, set the per-IP
+> throttles — `GEV_RATELIMIT_OPENAI_PER_MIN` and `GEV_RATELIMIT_GOOGLE_PER_MIN`
+> (see `.env.example`); **both default to UNLIMITED when unset.** They are
+> per-IP, process-local, in-memory guards that reset on restart — *not* billing
+> caps. Set provider-side quotas, usage limits and budget alerts as well, and
+> note that a budget alert does not itself stop spending. Provider Settings is
+> disabled whenever the server is shared, so remote users cannot reach the
+> key-entry panel. Full threat model in [SECURITY.md](SECURITY.md).
+
+### The catch: a LAN address is not a secure context
+
+Browsers grant `http://localhost` a pass, but a plain-HTTP **LAN IP is not a
+secure origin**. Measured on `http://192.168.x.x:4173`:
+
+| | `http://localhost` | `http://<lan-ip>` |
+|---|---|---|
+| `window.isSecureContext` | `true` | **`false`** |
+| Service worker | available | **unavailable** |
+| Install prompt / PWA | available | **unavailable** |
+| Microphone (`getUserMedia`) | available | **unavailable** |
+
+So over plain LAN HTTP the layout, touch controls and performance defaults all
+work — but the app **cannot be installed, has no offline shell, and cannot use
+the mic.** That is a browser rule, not a bug in the app, and no setting in this
+repo turns it off.
+
+To get the installable experience on a phone you need a real HTTPS origin —
+an HTTPS tunnel to your machine, or a locally-trusted certificate (for example
+via `mkcert`) wired into Vite's `server.https`. For a quick throwaway test,
+Chrome can be told to trust one origin under
+`chrome://flags/#unsafely-treat-insecure-origin-as-secure`; never leave that
+enabled.
+
+> [!NOTE]
+> `npm run dev:secure` does **not** provide HTTPS, despite the name. It reads
+> your keys from the macOS Keychain instead of a file and keeps the default
+> localhost binding — it ends by starting the ordinary HTTP dev server.
 
 ---
 

@@ -11,6 +11,24 @@ Please report security issues **privately** — do not open a public issue for a
 
 Include repro steps and impact. We'll acknowledge, investigate, and credit you (if you'd like) once a fix ships.
 
+## The service worker
+
+The app registers a service worker (`public/sw.js`) in production builds only.
+Its cache is the static app shell — the document, the hashed build assets, the
+icons — and nothing else.
+
+**No response under `/api/` is ever served or stored by it.** Every live feed
+in this app is brokered through that prefix, and a cached reading of a moving
+aircraft, vessel or fire is indistinguishable from a current one, which is a
+correctness and safety problem before it is a performance one. The worker
+refuses `/api/` before any other rule can match, and only ever stores
+same-origin `GET` requests, so no cross-origin or credentialed response enters
+the cache either.
+
+A service worker requires a secure context, so it never registers over a
+plain-HTTP LAN address — the same rule that keeps the install prompt and the
+microphone unavailable there.
+
 ## How secrets are handled
 
 The golden rule: **secret-bearing API keys stay on the server side.** The dev/preview server (middleware under `server/providers/`) brokers every request that needs a private credential, so the browser never receives one.
